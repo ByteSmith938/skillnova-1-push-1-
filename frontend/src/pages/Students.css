@@ -1,0 +1,290 @@
+/* Students.css */
+
+/* Table Layout */
+.st-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--glass-border);
+  background: rgba(15, 15, 20, 0.4);
+}
+
+.st-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  min-width: 900px;
+}
+
+.st-table th {
+  padding: 16px 24px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.student-row {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  transition: all 0.2s;
+}
+
+.student-row:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.student-row:last-child {
+  border-bottom: none;
+}
+
+.student-row td {
+  padding: 16px 24px;
+  vertical-align: middle;
+}
+
+/* Row Content */
+.sr-avatar-cell {
+  width: 60px;
+}
+
+.sr-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--gradient-brand);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.sr-name {
+  font-weight: 600;
+  color: var(--text-main);
+  font-size: 14px;
+  margin-bottom: 4px;
+}
+
+.sr-college {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sr-email-cell {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.sr-workshop-badge {
+  font-size: 12px;
+  font-weight: 500;
+  padding: 4px 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  color: var(--text-main);
+  display: inline-block;
+}
+
+.sr-progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  max-width: 120px;
+}
+
+.sr-progress-info {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.sr-progress-bar {
+  height: 6px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.sr-progress-fill {
+  height: 100%;
+  border-radius: 3px;
+}
+
+.sr-progress-fill.attendance {
+  background: #00D2FF;
+}
+
+.sr-progress-fill.course {
+  background: #7000FF;
+}
+
+.sr-status-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 20px;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 0.5px;
+}
+
+/* Actions */
+.sr-actions-group {
+  display: flex;
+  gap: 8px;
+}
+
+.sr-action-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.sr-action-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.sr-action-btn.view:hover { color: var(--accent-blue); border-color: rgba(0, 210, 255, 0.3); }
+.sr-action-btn.edit:hover { color: #f59e0b; border-color: rgba(245, 158, 11, 0.3); }
+.sr-action-btn.msg:hover { color: var(--accent-magenta); border-color: rgba(255, 0, 170, 0.3); }
+.sr-action-btn.delete:hover { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); background: rgba(239, 68, 68, 0.1); }
+
+/* Empty State */
+.st-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 0;
+  text-align: center;
+}
+
+.st-empty-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.st-empty-state h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 8px 0;
+}
+
+.st-empty-state p {
+  color: var(--text-muted);
+  margin: 0 0 24px 0;
+  font-size: 14px;
+}
+
+.st-create-btn {
+  padding: 10px 20px;
+}
+
+/* Loader */
+.st-loading-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.st-skeleton-row {
+  height: 72px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--glass-border);
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+/* Responsive Table */
+@media (max-width: 1024px) {
+  .st-table-wrapper {
+    border: none;
+    background: transparent;
+  }
+  
+  .st-table, .st-table thead, .st-table tbody, .st-table th, .st-table td, .st-table tr {
+    display: block;
+  }
+  
+  .st-table thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+  
+  .student-row {
+    background: rgba(15, 15, 20, 0.8);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-lg);
+    margin-bottom: 16px;
+    padding: 16px;
+    position: relative;
+  }
+  
+  .student-row td {
+    border: none;
+    padding: 8px 0;
+    position: relative;
+    padding-left: 140px;
+    display: flex;
+    align-items: center;
+  }
+  
+  .student-row td::before {
+    position: absolute;
+    left: 0;
+    width: 120px;
+    white-space: nowrap;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+  
+  .sr-avatar-cell::before { content: "Student"; }
+  .sr-name-cell::before { content: "Name & College"; }
+  .sr-email-cell::before { content: "Email"; }
+  .sr-workshop-cell::before { content: "Workshop"; }
+  .sr-progress-cell:nth-child(5)::before { content: "Attendance"; }
+  .sr-progress-cell:nth-child(6)::before { content: "Progress"; }
+  .sr-status-cell::before { content: "Status"; }
+  .sr-actions-cell::before { content: "Actions"; }
+  
+  .sr-avatar-cell {
+    padding-left: 0 !important;
+  }
+  
+  .sr-avatar-cell::before {
+    display: none;
+  }
+}

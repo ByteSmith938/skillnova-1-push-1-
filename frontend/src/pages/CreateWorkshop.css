@@ -1,0 +1,198 @@
+/* CreateWorkshop Design System - Matching SkillNova Aesthetic */
+
+.create-workshop-page {
+  min-height: 100vh;
+  background-color: #050505;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+.create-workshop-card {
+  width: 100%;
+  max-width: 600px;
+  background: rgba(15, 15, 20, 0.4);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 40px;
+  position: relative;
+  z-index: 10;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.create-workshop-header {
+  margin-bottom: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94A3B8;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: color 0.3s ease;
+  width: fit-content;
+  margin-bottom: 16px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.back-btn:hover {
+  color: #00D2FF;
+}
+
+.create-workshop-title {
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  background: linear-gradient(135deg, #FFFFFF 0%, #A5B4FC 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.create-workshop-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #94A3B8;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.form-input {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 12px 16px;
+  color: white;
+  font-size: 15px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-input:focus {
+  border-color: #00D2FF;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 0 15px rgba(0, 210, 255, 0.1);
+}
+
+.form-textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.image-upload-box {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 14px;
+  min-height: 200px;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+}
+
+.image-upload-box:hover {
+  border-color: #00d2ff;
+  box-shadow: 0 0 18px rgba(0, 210, 255, 0.16);
+  background: rgba(255, 255, 255, 0.045);
+}
+
+.image-upload-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.image-upload-text {
+  text-align: center;
+  pointer-events: none;
+}
+
+.image-upload-text p {
+  margin: 0;
+  color: #e2e8f0;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.image-upload-text span {
+  display: block;
+  margin-top: 8px;
+  color: #94A3B8;
+  font-size: 12px;
+}
+
+.image-preview {
+  width: 100%;
+  max-height: 280px;
+  object-fit: cover;
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.submit-btn {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #00D2FF 0%, #7000FF 100%);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 16px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 20px rgba(112, 0, 255, 0.3);
+}
+
+.submit-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 30px rgba(112, 0, 255, 0.4);
+}
+
+.submit-btn:active {
+  transform: translateY(0);
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  .create-workshop-card {
+    padding: 24px;
+  }
+}

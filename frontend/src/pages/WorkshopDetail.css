@@ -1,0 +1,712 @@
+.workshop-detail-page {
+  min-height: 100vh;
+  position: relative;
+  background: #050505;
+  color: #ffffff;
+  overflow: hidden;
+}
+
+.workshop-detail-content {
+  position: relative;
+  z-index: 1;
+  width: min(1280px, 92%);
+  margin: 0 auto;
+  padding: 112px 0 48px;
+}
+
+.workshop-loading-shell {
+  min-height: 60vh;
+  display: grid;
+  place-items: center;
+}
+
+.workshop-loading-text {
+  color: rgba(148, 163, 184, 0.95);
+  font-size: 16px;
+  letter-spacing: 0.2px;
+}
+
+.workshop-overview-shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.workshop-details-card,
+.workshop-qr-card,
+.workshop-students-shell {
+  background: rgba(12, 12, 18, 0.72);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  position: relative;
+  overflow: hidden;
+}
+
+.workshop-details-card::before,
+.workshop-qr-card::before,
+.workshop-students-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at top right, rgba(0, 210, 255, 0.1), transparent 56%);
+}
+
+.workshop-details-card {
+  padding: 28px;
+}
+
+.workshop-kicker {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #94a3b8;
+}
+
+.workshop-title {
+  margin: 10px 0 20px;
+  font-size: clamp(30px, 4vw, 44px);
+  line-height: 1.05;
+  letter-spacing: -1.4px;
+  font-weight: 900;
+  color: #ffffff;
+}
+
+.workshop-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.workshop-meta-item {
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.02);
+  padding: 12px;
+}
+
+.workshop-meta-label {
+  margin: 0;
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+}
+
+.workshop-meta-value {
+  margin: 8px 0 0;
+  color: #f8fafc;
+  font-weight: 600;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.workshop-description-card {
+  border-radius: 14px;
+  border: 1px solid rgba(112, 0, 255, 0.24);
+  background: linear-gradient(135deg, rgba(112, 0, 255, 0.1), rgba(0, 210, 255, 0.04));
+  padding: 14px;
+}
+
+.workshop-description-label {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.workshop-description-text {
+  margin: 8px 0 0;
+  color: rgba(203, 213, 225, 0.94);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.workshop-qr-card {
+  padding: 18px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.workshop-qr-inner {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.workshop-qr-title {
+  margin: 12px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: #f8fafc;
+}
+
+.workshop-qr-link {
+  margin: 8px 0 0;
+  font-size: 11px;
+  color: rgba(148, 163, 184, 0.95);
+  line-height: 1.5;
+  word-break: break-all;
+}
+
+.workshop-students-shell {
+  margin-top: 24px;
+  padding: 20px;
+  border-color: rgba(0, 210, 255, 0.16);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 26px rgba(0, 210, 255, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  animation: workshopFadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.workshop-students-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.workshop-students-title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.workshop-students-badge {
+  min-width: 34px;
+  height: 34px;
+  padding: 0 10px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  color: #ffffff;
+  background: linear-gradient(135deg, #00c6fb 0%, #7000ff 60%, #b300ff 100%);
+  box-shadow: 0 4px 20px rgba(112, 0, 255, 0.35);
+}
+
+.workshop-empty-state {
+  border-radius: 14px;
+  border: 1px dashed rgba(148, 163, 184, 0.35);
+  background: rgba(255, 255, 255, 0.02);
+  color: rgba(148, 163, 184, 0.95);
+  padding: 16px;
+  text-align: center;
+}
+
+.workshop-table-shell {
+  overflow-x: auto;
+  border: 1px solid rgba(0, 210, 255, 0.14);
+  border-radius: 16px;
+  background: rgba(2, 6, 23, 0.45);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.workshop-table {
+  width: 100%;
+  min-width: 900px;
+  border-collapse: separate;
+  border-spacing: 0;
+  animation: workshopFadeIn 0.55s ease;
+}
+
+.workshop-table thead th {
+  padding: 14px 16px;
+  text-align: left;
+  background:
+    linear-gradient(90deg, rgba(0, 210, 255, 0.12) 0%, rgba(0, 210, 255, 0.02) 22%, rgba(112, 0, 255, 0.05) 100%),
+    rgba(10, 13, 20, 0.95);
+  color: #e6f7ff;
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 800;
+  border-bottom: 1px solid rgba(0, 210, 255, 0.2);
+  white-space: nowrap;
+  text-shadow: 0 0 8px rgba(0, 210, 255, 0.22);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.workshop-table tbody td {
+  padding: 14px 16px;
+  color: #e2e8f0;
+  font-size: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  white-space: nowrap;
+}
+
+.workshop-table tbody tr {
+  cursor: pointer;
+  transition: background-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+
+.workshop-table tbody tr:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.workshop-table tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.workshop-table tbody tr:hover {
+  background: rgba(0, 210, 255, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(0, 210, 255, 0.2), 0 0 20px rgba(0, 210, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.workshop-name-cell {
+  color: #ffffff;
+  font-weight: 600;
+}
+
+.workshop-upi-cell {
+  font-family: Consolas, Menlo, Monaco, monospace;
+  font-size: 13px;
+}
+
+@keyframes workshopFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes workshopFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 980px) {
+  .workshop-detail-content {
+    padding-top: 100px;
+  }
+
+  .workshop-overview-shell {
+    grid-template-columns: 1fr;
+  }
+}
+
+.payment-status-tag {
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+}
+
+.payment-status-tag.free {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.payment-status-tag.pending {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.2);
+}
+
+.payment-status-tag.verified {
+  background: rgba(0, 210, 255, 0.15);
+  color: #00d2ff;
+  border: 1px solid rgba(0, 210, 255, 0.2);
+}
+
+.view-screenshot-link {
+  color: #00d2ff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.view-screenshot-link:hover {
+  text-decoration: underline;
+  text-shadow: 0 0 10px rgba(0, 210, 255, 0.4);
+}
+
+.no-screenshot {
+  color: rgba(148, 163, 184, 0.5);
+  font-size: 12px;
+  font-style: italic;
+}
+
+.student-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.student-college {
+  font-size: 11px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.student-phone, .student-email {
+  font-size: 13px;
+}
+
+.student-email {
+  color: #94a3b8;
+}
+
+/* Public Workshop Detail Styles */
+.workshop-back-nav {
+  margin-bottom: 20px;
+}
+
+.back-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #94a3b8;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.back-link:hover {
+  color: #fff;
+}
+
+.workshop-hero-section {
+  margin-bottom: 40px;
+}
+
+.workshop-hero-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 40px;
+  align-items: center;
+}
+
+.workshop-tag-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 210, 255, 0.15);
+  color: #00d2ff;
+  padding: 6px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(0, 210, 255, 0.2);
+  margin-bottom: 20px;
+}
+
+.workshop-display-title {
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0 0 16px;
+  color: #fff;
+}
+
+.workshop-instructor-lead {
+  font-size: 18px;
+  color: #94a3b8;
+  margin-bottom: 32px;
+}
+
+.workshop-instructor-lead span {
+  color: #fff;
+  font-weight: 700;
+}
+
+.workshop-quick-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+
+.meta-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+}
+
+.workshop-action-bar {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 24px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  width: fit-content;
+}
+
+.price-tag {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-label {
+  font-size: 11px;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 800;
+}
+
+.price-value {
+  font-size: 32px;
+  font-weight: 900;
+  color: #fff;
+}
+
+.btn-register-main {
+  background: linear-gradient(135deg, #00d2ff 0%, #7000ff 100%);
+  color: #fff;
+  border: none;
+  padding: 18px 40px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+  box-shadow: 0 10px 25px rgba(0, 210, 255, 0.3);
+}
+
+.btn-register-main:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 15px 35px rgba(0, 210, 255, 0.4);
+}
+
+.btn-register-main.disabled {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+.workshop-hero-visual {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.workshop-hero-visual .visual-card {
+  position: relative;
+  border-radius: 32px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+}
+
+.visual-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.visual-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to bottom, transparent 40%, rgba(0, 0, 0, 0.8));
+}
+
+.capacity-indicator {
+  position: absolute;
+  bottom: 24px;
+  left: 24px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(12px);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.workshop-body-grid {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 40px;
+}
+
+.info-card, .perks-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  padding: 32px;
+}
+
+.info-card h3, .perks-card h4 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-top: 0;
+  margin-bottom: 20px;
+}
+
+.info-card p {
+  font-size: 17px;
+  line-height: 1.7;
+  color: #cbd5e1;
+  margin-bottom: 32px;
+}
+
+.learning-outcomes h4 {
+  font-size: 18px;
+  margin-bottom: 16px;
+}
+
+.learning-outcomes ul {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: 16px;
+}
+
+.learning-outcomes li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 15px;
+  color: #e2e8f0;
+}
+
+.learning-outcomes li svg {
+  color: #00d2ff;
+}
+
+.perk-item {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.perk-item:last-child {
+  margin-bottom: 0;
+}
+
+.perk-icon {
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.perk-text strong {
+  display: block;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 2px;
+}
+
+.perk-text span {
+  font-size: 13px;
+  color: #94a3b8;
+  line-height: 1.4;
+}
+
+@media (max-width: 1100px) {
+  .workshop-hero-grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+  
+  .workshop-body-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .workshop-action-bar {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+/* Public QR Card Styling */
+.public-qr {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
+  animation: workshopFadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.qr-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  color: #00d2ff;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 13px;
+  letter-spacing: 0.05em;
+}
+
+.public-qr .workshop-qr-inner {
+  margin: 0 auto;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+}
+
+.public-qr .workshop-qr-link {
+  color: rgba(148, 163, 184, 0.6);
+  font-family: Consolas, monospace;
+  margin-top: 16px;
+}
+
+.qr-hint {
+  margin-top: 12px;
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+@media (max-width: 1100px) {
+  .public-qr {
+    margin-top: 0;
+  }
+}
