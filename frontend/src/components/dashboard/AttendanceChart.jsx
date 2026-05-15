@@ -1,24 +1,24 @@
 import React from 'react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-const data = [
-  { name: 'Mon', attendance: 40 },
-  { name: 'Tue', attendance: 85 },
-  { name: 'Wed', attendance: 55 },
-  { name: 'Thu', attendance: 110 },
-  { name: 'Fri', attendance: 90 },
-  { name: 'Sat', attendance: 140 },
-  { name: 'Sun', attendance: 180 },
-];
+const AttendanceChart = ({ data = [] }) => {
+  const chartData = data.length > 0 ? data : [
+    { name: 'Mon', attendance: 0 },
+    { name: 'Tue', attendance: 0 },
+    { name: 'Wed', attendance: 0 },
+    { name: 'Thu', attendance: 0 },
+    { name: 'Fri', attendance: 0 },
+    { name: 'Sat', attendance: 0 },
+    { name: 'Sun', attendance: 0 },
+  ];
 
-const AttendanceChart = () => {
   return (
     <div className="analytics-card">
-      <h3 className="analytics-title">Attendance Trend</h3>
+      <h3 className="analytics-title">Registrations Trend</h3>
       <div className="chart-container" style={{ width: '100%', height: 260 }}>
         <ResponsiveContainer>
           <AreaChart
-            data={data}
+            data={chartData}
             margin={{ top: 10, right: 10, left: -20, bottom: 0 }}
           >
             <defs>

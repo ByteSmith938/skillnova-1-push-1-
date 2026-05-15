@@ -1,109 +1,68 @@
 import { API_BASE_URL, getAuthHeaders } from "./apiConfig";
 
-const REQUEST_TIMEOUT_MS = 8000;
-
 const parseJsonResponse = async (response) => {
-  const contentType = response.headers.get("content-type") || "";
-
-  console.log("[workshopApi] response", {
-    url: response.url,
-    status: response.status,
-    ok: response.ok,
-    contentType
-  });
-
   if (!response.ok) {
     const errorText = await response.text();
-    const errorMsg = `[workshopApi] Request failed: ${response.url} | Status: ${response.status} | ${errorText}`;
-    console.error(errorMsg);
-    throw new Error(errorMsg);
+    throw new Error(errorText || `Request failed with status ${response.status}`);
   }
-
-  if (!contentType.includes("application/json")) {
-    return null;
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
   }
-
-  return response.json();
+  return null;
 };
 
 export const fetchWorkshops = async () => {
-  const url = `${API_BASE_URL}/workshops`;
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-
-  console.log("[workshopApi] GET", url);
-
+  const response = await fetch(`${API_BASE_URL}/workshops/public`);
+  if (!response.ok) {
+    console.warn("fetchWorkshops: HTTP", response.status);
+    return [];
+  }
   try {
-    const response = await fetch(url, {
-      cache: "no-store",
-      signal: controller.signal
-    });
-    const data = await parseJsonResponse(response);
-    
-    // Handle both { workshops: [...] } and [...]
-    const list = data && typeof data === 'object' && Array.isArray(data.workshops) 
-      ? data.workshops 
-      : Array.isArray(data) ? data : [];
-
-    console.log("[workshopApi] workshops payload", {
-      isArray: Array.isArray(list),
-      count: list.length
-    });
-    return list;
-  } finally {
-    window.clearTimeout(timeoutId);
+    const data = await response.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn("fetchWorkshops: invalid JSON response", err);
+    return [];
   }
 };
 
-export const createWorkshop = async (workshop) => {
+export const fetchWorkshopById = async (id) => {
+  const response = await fetch(`${API_BASE_URL}/workshops/${id}`);
+  return parseJsonResponse(response);
+};
+
+export const createWorkshop = async (workshopData) => {
   const response = await fetch(`${API_BASE_URL}/workshops`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
     },
-    body: JSON.stringify(workshop)
+    body: JSON.stringify(workshopData),
   });
+  return parseJsonResponse(response);
+};
 
+export const updateWorkshop = async (id, workshopData) => {
+  const response = await fetch(`${API_BASE_URL}/workshops/${id}`, {
+    method: "PUT",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(workshopData),
+  });
   return parseJsonResponse(response);
 };
 
 export const deleteWorkshop = async (id) => {
   const response = await fetch(`${API_BASE_URL}/workshops/${id}`, {
-    method: "DELETE"
+    method: "DELETE",
+    headers: getAuthHeaders(),
   });
-
   if (!response.ok) {
     const errorText = await response.text();
-    throw new Error(errorText || `Delete failed with status ${response.status}`);
+    throw new Error(errorText || "Delete failed");
   }
-};
-
-export const fetchPublicWorkshop = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/workshops/${id}/public`, {
-    cache: "no-store"
-  });
-
-  return parseJsonResponse(response);
-};
-
-export const fetchAdminWorkshop = async (id) => {
-  const response = await fetch(`${API_BASE_URL}/workshops/${id}/admin`, {
-    cache: "no-store",
-    headers: getAuthHeaders()
-  });
-
-  return parseJsonResponse(response);
-};
-
-export const updatePaymentStatus = async (studentId, status) => {
-  const response = await fetch(`${API_BASE_URL}/admin/student/${studentId}/payment-status`, {
-    method: "PATCH",
-    headers: {
-      ...getAuthHeaders(),
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({ paymentStatus: status })
-  });
-
-  return parseJsonResponse(response);
 };

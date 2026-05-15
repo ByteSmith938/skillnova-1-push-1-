@@ -5,8 +5,8 @@ import { Calendar, Clock, MapPin, User, ArrowLeft, Zap, Star, Shield, Cpu, Users
 import { QRCodeCanvas } from "qrcode.react";
 import Navbar from "../components/Navbar";
 import AppBackground from "../components/AppBackground";
-import { fetchPublicWorkshop } from "../services/workshopApi";
-import { getPublicFrontendOrigin } from "../services/apiConfig";
+import { API_BASE_URL, FRONTEND_URL } from "../services/apiConfig";
+import { fetchWorkshopById } from "../services/workshopApi";
 import "./Home.css";
 import "./WorkshopDetail.css";
 
@@ -18,12 +18,12 @@ function PublicWorkshopDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const registerUrl = `${getPublicFrontendOrigin()}/register/${id}`;
+  const registerUrl = `${FRONTEND_URL}/register?workshop=${id}`;
 
   useEffect(() => {
     const loadWorkshop = async () => {
       try {
-        const data = await fetchPublicWorkshop(id);
+        const data = await fetchWorkshopById(id);
         setWorkshop(data);
       } catch (err) {
         console.error("Error fetching public workshop:", err);

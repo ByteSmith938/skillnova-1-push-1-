@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL, getAuthHeaders } from "../services/apiConfig";
 import { motion } from "framer-motion";
 import { BookOpen, Users, Activity, Award } from "lucide-react";
 import AppBackground from "../components/AppBackground";
@@ -13,6 +12,8 @@ import RecentActivity from "../components/dashboard/RecentActivity";
 import TopWorkshops from "../components/dashboard/TopWorkshops";
 import QuickInsights from "../components/dashboard/QuickInsights";
 import EmptyAnalytics from "../components/dashboard/EmptyAnalytics";
+import { fetchWorkshops } from "../services/workshopApi";
+import { fetchAllStudents } from "../services/studentService";
 import "./Analytics.css";
 
 function Analytics() {
@@ -24,24 +25,13 @@ function Analytics() {
     let isMounted = true;
     const loadData = async () => {
       try {
-        const [workshopsRes, studentsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/workshops`, { cache: "no-store" }),
-          fetch(`${API_BASE_URL}/students`, { headers: getAuthHeaders(), cache: "no-store" })
+        const [workshopsData, studentsData] = await Promise.all([
+          fetchWorkshops(),
+          fetchAllStudents()
         ]);
 
-        if (!workshopsRes.ok) throw new Error("Failed to fetch workshops");
-        if (!studentsRes.ok) throw new Error("Failed to fetch students");
-
-        const workshopsData = await workshopsRes.json();
-        const studentsData = await studentsRes.json();
-
-        // Handle wrapped workshop response if present
-        const wsList = workshopsData && typeof workshopsData === 'object' && Array.isArray(workshopsData.workshops)
-          ? workshopsData.workshops
-          : Array.isArray(workshopsData) ? workshopsData : [];
-
         if (isMounted) {
-          setWorkshops(wsList);
+          setWorkshops(Array.isArray(workshopsData) ? workshopsData : []);
           setStudents(Array.isArray(studentsData) ? studentsData : []);
           setLoading(false);
         }

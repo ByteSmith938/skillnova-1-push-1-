@@ -1,46 +1,57 @@
-import React from 'react';
-import { Check, CheckCheck } from 'lucide-react';
+import { CheckCheck } from "lucide-react";
 
-/* Renders a single message bubble (own, other, or system) */
-const MessageBubble = ({ message }) => {
-  if (message.type === 'system') {
+const formatTime = (dateString) => {
+  const d = new Date(dateString);
+  return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+};
+
+const getInitials = (name) => name.charAt(0).toUpperCase();
+
+const AVATAR_COLORS = {
+  sagar: "linear-gradient(135deg,#00d2ff,#7000ff)",
+  pranit: "linear-gradient(135deg,#8b5cf6,#ec4899)"
+};
+
+const MessageBubble = ({ message, currentUser }) => {
+  if (message.type === "system") {
     return (
       <div className="system-message">
         <span className="system-dot" />
         {message.text}
-        <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#6b7280' }}>
-          {message.time}
+        <span style={{ marginLeft: "auto", fontSize: "11px", color: "#6b7280" }}>
+          {formatTime(message.createdAt)}
         </span>
       </div>
     );
   }
 
-  const isOwn = message.isOwn;
+  const isOwn = message.senderId === currentUser?.username;
+  const avatarColor = AVATAR_COLORS[message.senderId] || "linear-gradient(135deg,#f59e0b,#ef4444)";
 
   return (
-    <div className={`message-row ${isOwn ? 'own' : ''}`}>
-      {/* Avatar */}
+    <div className={`message-row ${isOwn ? "own" : ""}`}>
       <div
         className="msg-avatar"
-        style={{ background: message.avatarColor }}
-        title={message.sender}
+        style={{ background: avatarColor }}
+        title={message.senderName}
       >
-        {message.sender.charAt(0)}
+        {getInitials(message.senderName)}
       </div>
 
-      {/* Body */}
       <div className="msg-body">
         <div className="msg-meta">
-          <span className="msg-sender">{message.sender}</span>
-          <span className="msg-time">{message.time}</span>
+          <span className="msg-sender">{message.senderName}</span>
+          <span className="msg-time">{formatTime(message.createdAt)}</span>
+          <span className="msg-time" style={{ fontSize: "10px", textTransform: "uppercase" }}>
+            {message.senderRole}
+          </span>
         </div>
         <div className="msg-bubble">
-          {message.text}
+          {message.message}
         </div>
-        {/* Status ticks for own messages */}
         {isOwn && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '2px' }}>
-            <CheckCheck size={13} style={{ color: 'var(--accent-blue, #00d2ff)' }} />
+          <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2px" }}>
+            <CheckCheck size={13} style={{ color: "var(--accent-blue, #00d2ff)" }} />
           </div>
         )}
       </div>

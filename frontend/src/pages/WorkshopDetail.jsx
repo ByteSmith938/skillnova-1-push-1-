@@ -3,8 +3,10 @@ import { useEffect, useState } from "react";
 import { QRCodeCanvas } from "qrcode.react";
 import Navbar from "../components/Navbar";
 import AppBackground from "../components/AppBackground";
-import { API_BASE_URL, getPublicFrontendOrigin, getAuthToken } from "../services/apiConfig";
-import { fetchAdminWorkshop, updatePaymentStatus } from "../services/workshopApi";
+import { FRONTEND_URL } from "../config/env";
+import { getAuthToken } from "../services/apiConfig";
+import { fetchWorkshopById } from "../services/workshopApi";
+import { fetchStudentsByWorkshop, updateStudentPaymentStatus } from "../services/studentService";
 import "./Home.css";
 import "./WorkshopDetail.css";
 
@@ -16,7 +18,7 @@ function WorkshopDetail() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  
+
   // Verification states
   const [confirmModal, setConfirmModal] = useState({ show: false, student: null, status: "" });
   const [toast, setToast] = useState({ show: false, message: "" });
@@ -24,15 +26,18 @@ function WorkshopDetail() {
 
   const token = getAuthToken();
 
-  // QR URL
-  const registerUrl = `${getPublicFrontendOrigin()}/register/${id}`;
+  // QR URL using FRONTEND_URL from config
+  const registerUrl = `${FRONTEND_URL}/register?workshop=${id}`;
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const data = await fetchAdminWorkshop(id);
-        setWorkshop(data.workshopDetails);
-        setStudents(data.registeredStudents || []);
+        const [workshopData, studentsData] = await Promise.all([
+          fetchWorkshopById(id),
+          fetchStudentsByWorkshop(id)
+        ]);
+        setWorkshop(workshopData);
+        setStudents(studentsData || []);
       } catch (err) {
         console.error("Error fetching admin workshop details:", err);
         setError("Failed to load workshop data. You may not have permission.");
@@ -41,7 +46,7 @@ function WorkshopDetail() {
       }
     };
 
-    loadData();
+    if (id) loadData();
   }, [id]);
 
   const showToast = (message) => {
@@ -50,33 +55,22 @@ function WorkshopDetail() {
   };
 
   const handleStatusUpdate = async (studentId, status) => {
-    const token = getAuthToken();
-    console.log("DEBUG: handleStatusUpdate called", { studentId, status, hasToken: !!token });
-    
     if (!token) {
-      console.error("CRITICAL: Auth token missing. Update will fail.");
-      alert("Authentication error: Please log out and log in again.");
+      alert("Authentication error: Please log in again.");
       return;
     }
 
     setUpdatingId(studentId);
     try {
-      console.log(`DEBUG: Sending PATCH to /admin/student/${studentId}/payment-status with status: ${status}`);
-      const responseData = await updatePaymentStatus(studentId, status);
-      console.log("DEBUG: Status update response data:", responseData);
-      
-      // Update local state with fresh data from server
-      setStudents(prev => {
-        const next = prev.map(s => 
-          s._id === studentId ? responseData : s
-        );
-        console.log(`DEBUG: State updated for student ${studentId}`);
-        return next;
-      });
-      
+      const responseData = await updateStudentPaymentStatus(studentId, status);
+
+      setStudents(prev => prev.map(s =>
+        s._id === studentId ? responseData : s
+      ));
+
       showToast(`Payment ${status === "completed" ? "Approved" : "Rejected"} successfully!`);
     } catch (err) {
-      console.error("CRITICAL: Failed to update status:", err);
+      console.error("Failed to update status:", err);
       alert(`Error updating payment status: ${err.message}`);
     } finally {
       setUpdatingId(null);
@@ -203,31 +197,25 @@ function WorkshopDetail() {
                       </td>
                       <td>
                         <span className={`payment-status-tag ${s.paymentStatus}`}>
-                          {s.paymentStatus === "completed" 
-                            ? "Approved" 
+                          {s.paymentStatus === "completed"
+                            ? "Approved"
                             : s.paymentStatus === "rejected"
-                            ? "Rejected"
-                            : s.paymentStatus?.toUpperCase()}
+                              ? "Rejected"
+                              : s.paymentStatus?.toUpperCase()}
                         </span>
                       </td>
                       <td className="workshop-upi-cell">{s.utrId || s.upiId || "N/A"}</td>
                       <td>
                         {s.paymentScreenshot ? (
-                          (() => {
-                            const filename = s.paymentScreenshot.split("/").pop();
-                            const screenshotUrl = `${API_BASE_URL}/admin/payment-screenshot/${filename}?token=${token}`;
-                            return (
-                              <a
-                                href={screenshotUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="view-screenshot-link"
-                              >
-                                View
-                              </a>
-                            );
-                          })()
+                          <a
+                            href={s.paymentScreenshot}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={(e) => e.stopPropagation()}
+                            className="view-screenshot-link"
+                          >
+                            View
+                          </a>
                         ) : (
                           <span className="no-screenshot">No Screenshot</span>
                         )}
@@ -236,15 +224,15 @@ function WorkshopDetail() {
                         <div className="verification-actions">
                           {s.paymentStatus === "pending" ? (
                             <>
-                              <button 
-                                className="btn-approve" 
+                              <button
+                                className="btn-approve"
                                 onClick={(e) => triggerConfirm(e, s, "completed")}
                                 disabled={updatingId === s._id}
                               >
                                 {updatingId === s._id ? "..." : "Approve Payment"}
                               </button>
-                              <button 
-                                className="btn-reject" 
+                              <button
+                                className="btn-reject"
                                 onClick={(e) => triggerConfirm(e, s, "rejected")}
                                 disabled={updatingId === s._id}
                               >
@@ -277,19 +265,19 @@ function WorkshopDetail() {
               {confirmModal.status === "completed" ? "Approve Payment" : "Reject Payment"}
             </h2>
             <p className="modal-message">
-              {confirmModal.status === "completed" 
+              {confirmModal.status === "completed"
                 ? `Are you sure you want to mark the payment for ${confirmModal.student?.name} as completed?`
                 : `Are you sure you want to reject the payment for ${confirmModal.student?.name}?`
               }
             </p>
             <div className="modal-actions">
-              <button 
-                className="btn-modal-cancel" 
+              <button
+                className="btn-modal-cancel"
                 onClick={() => setConfirmModal({ show: false, student: null, status: "" })}
               >
                 Cancel
               </button>
-              <button 
+              <button
                 className={`btn-modal-confirm ${confirmModal.status === "completed" ? "approve" : "reject"}`}
                 onClick={() => handleStatusUpdate(confirmModal.student?._id, confirmModal.status)}
               >

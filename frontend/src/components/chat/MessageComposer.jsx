@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { Smile, Paperclip, Send } from 'lucide-react';
 
-const MessageComposer = ({ onSend }) => {
+const MessageComposer = ({ onSend, sending }) => {
   const [text, setTextState] = React.useState('');
   const textareaRef = useRef(null);
 
@@ -16,7 +16,7 @@ const MessageComposer = ({ onSend }) => {
 
   const handleSend = () => {
     const trimmed = text.trim();
-    if (!trimmed) return;
+    if (!trimmed || sending) return;
     onSend(trimmed);
     setTextState('');
     if (textareaRef.current) textareaRef.current.style.height = 'auto';
@@ -52,6 +52,7 @@ const MessageComposer = ({ onSend }) => {
             className="composer-send-btn"
             onClick={handleSend}
             title="Send message"
+            style={sending ? { opacity: 0.5, cursor: "not-allowed" } : {}}
           >
             <Send size={16} />
           </button>

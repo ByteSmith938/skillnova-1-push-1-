@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { API_BASE_URL, getAuthHeaders } from "../services/apiConfig";
 import { motion } from "framer-motion";
 import { Users, UserCheck, Award, Activity } from "lucide-react";
 import AppBackground from "../components/AppBackground";
@@ -9,6 +8,8 @@ import StudentFilters from "../components/dashboard/StudentFilters";
 import StudentTable from "../components/dashboard/StudentTable";
 import EmptyStudents from "../components/dashboard/EmptyStudents";
 import StatsCard from "../components/dashboard/StatsCard";
+import { fetchAllStudents } from "../services/studentService";
+import { fetchWorkshops } from "../services/workshopApi";
 import "./Students.css";
 
 function Students() {
@@ -21,25 +22,14 @@ function Students() {
     let isMounted = true;
     const loadData = async () => {
       try {
-        const [studentsRes, workshopsRes] = await Promise.all([
-          fetch(`${API_BASE_URL}/students`, { headers: getAuthHeaders(), cache: "no-store" }),
-          fetch(`${API_BASE_URL}/workshops`, { cache: "no-store" })
+        const [studentsData, workshopsData] = await Promise.all([
+          fetchAllStudents(),
+          fetchWorkshops()
         ]);
-
-        if (!studentsRes.ok) throw new Error("Failed to fetch students");
-        if (!workshopsRes.ok) throw new Error("Failed to fetch workshops");
-
-        const studentsData = await studentsRes.json();
-        const workshopsData = await workshopsRes.json();
-
-        // Handle wrapped workshop response if present
-        const wsList = workshopsData && typeof workshopsData === 'object' && Array.isArray(workshopsData.workshops)
-          ? workshopsData.workshops
-          : Array.isArray(workshopsData) ? workshopsData : [];
 
         if (isMounted) {
           setStudents(Array.isArray(studentsData) ? studentsData : []);
-          setWorkshops(wsList);
+          setWorkshops(Array.isArray(workshopsData) ? workshopsData : []);
           setLoading(false);
         }
       } catch (err) {

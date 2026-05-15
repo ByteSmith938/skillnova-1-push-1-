@@ -179,9 +179,7 @@ function EditStudent() {
     return null;
   }
 
-  const screenshotUrl = form.paymentScreenshot 
-    ? `${API_BASE_URL}/admin/payment-screenshot/${form.paymentScreenshot.split("/").pop()}?token=${getAuthToken()}`
-    : null;
+  const screenshotUrl = form.paymentScreenshot || null;
 
   return (
     <div className="edit-student-page">

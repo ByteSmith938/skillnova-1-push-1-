@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Bell, Plus, ChevronDown } from 'lucide-react';
+import { Search, Bell, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 import RoleGuard from '../auth/RoleGuard';
+import ProfileDropdown from '../profile/ProfileDropdown';
 
 const DashboardHeader = () => {
   const navigate = useNavigate();
@@ -10,7 +11,7 @@ const DashboardHeader = () => {
   return (
     <header className="dashboard-header-new">
       <div className="dh-left">
-        <motion.h1 
+        <motion.h1
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.5 }}
@@ -34,23 +35,20 @@ const DashboardHeader = () => {
       </div>
 
       <div className="dh-right">
-        <button className="dh-icon-btn">
+        <button className="dh-icon-btn" aria-label="Notifications">
           <Bell size={20} />
           <span className="dh-badge">3</span>
         </button>
-        
-        <div className="dh-admin-profile">
-          <div className="dh-admin-avatar">A</div>
-          <span className="dh-admin-name">Admin</span>
-          <ChevronDown size={14} />
-        </div>
+
+        {/* Real profile dropdown — replaces the old static .dh-admin-profile div */}
+        <ProfileDropdown />
 
         <RoleGuard allowedRoles={['admin']}>
           <motion.button
             className="btn btn-primary dh-create-btn"
             whileHover={{ scale: 1.05, translateY: -2 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => navigate("/create-workshop")}
+            onClick={() => navigate('/create-workshop')}
           >
             <Plus size={20} /> Create Workshop
           </motion.button>

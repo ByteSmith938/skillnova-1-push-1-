@@ -188,8 +188,8 @@
     0 1px 0 rgba(255, 255, 255, 0.05) inset;
   position: relative;
   z-index: 1;
-  transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.45s ease, border-color 0.35s ease;
-  animation: registerCardFloat 8.5s ease-in-out infinite;
+  /* Removed floating animation — it offsets touch hit targets on mobile */
+  transition: box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .register-card::after {
@@ -206,7 +206,6 @@
 }
 
 .register-card:hover {
-  transform: translateY(-6px) scale(1.01);
   border-color: rgba(0, 210, 255, 0.22);
   box-shadow:
     0 30px 90px rgba(0, 0, 0, 0.62),
@@ -214,6 +213,7 @@
     0 0 68px rgba(112, 0, 255, 0.12),
     0 0 0 1px rgba(255, 255, 255, 0.04) inset,
     0 1px 0 rgba(255, 255, 255, 0.05) inset;
+  /* No transform on hover — keeps button hit targets stable on mobile */
 }
 
 .register-card-header {
@@ -345,18 +345,6 @@
   left: 100%;
 }
 
-@keyframes registerCardFloat {
-  0% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-5px);
-  }
-  100% {
-    transform: translateY(0px);
-  }
-}
-
 @media (max-width: 1024px) {
   .register-layout {
     grid-template-columns: 1fr;
@@ -373,7 +361,6 @@
   }
 
   .register-card {
-    animation: none;
     margin-top: 20px;
   }
 }
@@ -401,3 +388,34 @@
   }
 }
 
+
+/* ── Feedback banners (replaces browser alert()) ─────────────────────────── */
+.register-error,
+.register-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+.register-error,
+.register-feedback--error {
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #ef4444;
+}
+
+.register-feedback--success {
+  background: rgba(16, 185, 129, 0.1);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  color: #10b981;
+}
+
+.register-feedback svg {
+  flex-shrink: 0;
+  margin-top: 1px;
+}

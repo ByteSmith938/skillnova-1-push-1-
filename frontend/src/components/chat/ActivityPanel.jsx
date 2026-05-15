@@ -1,46 +1,58 @@
-import React from 'react';
-import { BookOpen, UserCheck, Server, BarChart2, Bug, Megaphone, CheckCircle, Calendar } from 'lucide-react';
+import { BookOpen, UserCheck, Server, BarChart2, Bug, Megaphone, CheckCircle, Calendar } from "lucide-react";
 
-const ACTIVITY = [
-  { icon: BookOpen,   color: '#00d2ff', text: 'Workshop "React Fundamentals" created',  time: '2 mins ago'   },
-  { icon: UserCheck,  color: '#10b981', text: 'Student issue #247 resolved',             time: '15 mins ago'  },
-  { icon: Server,     color: '#7000ff', text: 'Production deployment completed v2.4.1',  time: '1 hr ago'     },
-  { icon: BarChart2,  color: '#f59e0b', text: 'Analytics dashboard updated',             time: '2 hrs ago'    },
-  { icon: Bug,        color: '#ef4444', text: 'QR bug report escalated to tech lead',    time: '3 hrs ago'    },
-  { icon: Megaphone,  color: '#ec4899', text: 'Announcement sent to all students',       time: 'Yesterday'    },
+const timeAgo = (dateString) => {
+  const now = new Date();
+  const date = new Date(dateString);
+  const seconds = Math.floor((now - date) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 30) return `${days}d ago`;
+  return date.toLocaleDateString();
+};
+
+const ACTIVITY_ICONS = [
+  BookOpen, UserCheck, Server, BarChart2, Bug, Megaphone
 ];
 
 const QUICK_ACTIONS = [
-  { icon: Bug,          label: 'Report Bug',          color: '#ef4444' },
-  { icon: Megaphone,    label: 'Send Announcement',   color: '#00d2ff' },
-  { icon: CheckCircle,  label: 'Create Task',         color: '#10b981' },
-  { icon: Calendar,     label: 'Schedule Maintenance', color: '#f59e0b' },
+  { icon: Bug,          label: "Report Bug",          color: "#ef4444" },
+  { icon: Megaphone,    label: "Send Announcement",   color: "#00d2ff" },
+  { icon: CheckCircle,  label: "Create Task",         color: "#10b981" },
+  { icon: Calendar,     label: "Schedule Maintenance", color: "#f59e0b" },
 ];
 
-const ActivityPanel = () => (
+const ActivityPanel = ({ activities = [] }) => (
   <>
-    {/* Recent Activity */}
     <div className="team-panel-section">
       <p className="panel-section-title">Recent Internal Activity</p>
       <div className="activity-feed">
-        {ACTIVITY.map((item, idx) => {
-          const Icon = item.icon;
-          return (
-            <div key={idx} className="activity-feed-item">
-              <div className="activity-dot" style={{ borderColor: `${item.color}30`, background: `${item.color}12` }}>
-                <Icon size={12} style={{ color: item.color }} />
+        {activities.length === 0 ? (
+          <div style={{ color: "var(--text-muted)", fontSize: 13, textAlign: "center", padding: "20px 0" }}>
+            No recent activity
+          </div>
+        ) : (
+          activities.map((item, idx) => {
+            const Icon = ACTIVITY_ICONS[idx % ACTIVITY_ICONS.length];
+            return (
+              <div key={item.id} className="activity-feed-item">
+                <div className="activity-dot" style={{ borderColor: `${item.color}30`, background: `${item.color}12` }}>
+                  <Icon size={12} style={{ color: item.color }} />
+                </div>
+                <div className="activity-content">
+                  <p className="activity-text">{item.text}</p>
+                  <span className="activity-time">{timeAgo(item.time)}</span>
+                </div>
               </div>
-              <div className="activity-content">
-                <p className="activity-text">{item.text}</p>
-                <span className="activity-time">{item.time}</span>
-              </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
 
-    {/* Quick Actions */}
     <div className="team-panel-section">
       <p className="panel-section-title">Quick Actions</p>
       <div className="quick-action-grid">

@@ -1,193 +1,165 @@
-import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
-import { motion } from "framer-motion";
-import { Zap, Monitor, Award, Cpu, Users } from "lucide-react";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams, useLocation } from "react-router-dom";
+import { motion, AnimatePresence } from "framer-motion";
+import { Zap, Monitor, Award, Cpu, Users, CheckCircle, AlertCircle } from "lucide-react";
 import Navbar from "../components/Navbar";
 import AppBackground from "../components/AppBackground";
 import SearchableDropdown from "../components/SearchableDropdown";
-import { API_BASE_URL } from "../services/apiConfig";
-import { fetchWorkshops } from "../services/workshopApi";
+import { fetchWorkshops, registerStudent } from "../services/studentService";
 import "./Home.css";
 import "./Register.css";
 
 function Register() {
-  const { id } = useParams();
-  const [workshops, setWorkshops] = useState([]);
+  const { id: paramId } = useParams();
+  const location = useLocation();
+  const queryId = new URLSearchParams(location.search).get("workshop");
+  const preselectedId = paramId || queryId || "";
+
+  const [workshops, setWorkshops]               = useState([]);
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
   const [screenshotPreview, setScreenshotPreview] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading]                   = useState(true);
+  const [submitting, setSubmitting]             = useState(false);
+  const [submitResult, setSubmitResult]         = useState(null); // { ok: bool, message: string }
 
   const [form, setForm] = useState({
-    name: "",
-    college: "",
-    phone: "",
-    email: "",
-    selectedWorkshopId: id || "",
-    upiId: ""
+    name:               "",
+    college:            "",
+    phone:              "",
+    email:              "",
+    selectedWorkshopId: preselectedId,
+    upiId:              "",
   });
 
   const selectedWorkshop = useMemo(
-    () => workshops.find((workshop) => workshop._id === form.selectedWorkshopId),
+    () => workshops.find((w) => w._id === form.selectedWorkshopId),
     [form.selectedWorkshopId, workshops]
   );
   const selectedPrice = Number(selectedWorkshop?.price || 0);
-  const isPaid = selectedPrice > 0;
-  const amountLabel = selectedWorkshop ? (isPaid ? `₹${selectedPrice}` : "FREE") : "";
+  const isPaid        = selectedPrice > 0;
+  const amountLabel   = selectedWorkshop ? (isPaid ? `₹${selectedPrice}` : "FREE") : "";
 
+  // ── Load workshops ──────────────────────────────────────────────────────────
   useEffect(() => {
-    let isMounted = true;
-
-    const loadData = async () => {
+    let alive = true;
+    const load = async () => {
       try {
-        setLoading(true);
-        const res = await fetch(`${API_BASE_URL}/workshops/public`);
-        const data = await res.json();
-        
-        console.log("Workshop API response:", data);
-        
-        if (!isMounted) return;
-        
-        const workshopList = Array.isArray(data) ? data : [];
-        console.log("Mapped workshops:", workshopList);
-        setWorkshops(workshopList);
-
-        if (id && workshopList.some((workshop) => (workshop._id || workshop.id) === id)) {
-          setForm((prev) => ({ ...prev, selectedWorkshopId: id }));
+        const list = await fetchWorkshops();
+        if (!alive) return;
+        setWorkshops(list);
+        // Auto-select if the preselected ID exists in the list
+        if (preselectedId && list.some((w) => w._id === preselectedId)) {
+          setForm((prev) => ({ ...prev, selectedWorkshopId: preselectedId }));
         }
       } catch (err) {
         console.error("Error fetching workshops:", err);
-        if (isMounted) setWorkshops([]);
       } finally {
-        if (isMounted) setLoading(false);
+        if (alive) setLoading(false);
       }
     };
+    load();
+    return () => { alive = false; };
+  }, [preselectedId]);
 
-    loadData();
-    return () => { isMounted = false; };
-  }, [id]);
-
-  const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value
-    });
-  };
+  // ── Field handlers ──────────────────────────────────────────────────────────
+  const handleChange = useCallback((e) => {
+    setSubmitResult(null);
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  }, []);
 
   const handleScreenshotChange = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
-
-    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
-      setError("Payment screenshot must be a JPG, PNG, or WEBP image.");
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setSubmitResult({ ok: false, message: "Payment screenshot must be JPG, PNG, or WEBP." });
       return;
     }
-
-    setError("");
+    if (file.size > 5 * 1024 * 1024) {
+      setSubmitResult({ ok: false, message: "Screenshot must be under 5 MB." });
+      return;
+    }
+    setSubmitResult(null);
     setPaymentScreenshot(file);
     setScreenshotPreview(URL.createObjectURL(file));
   };
 
+  // ── Submit ──────────────────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    
-    console.log("SUBMIT CLICKED");
-    console.log("Form values:", {
-      selectedWorkshopId: form.selectedWorkshopId,
-      name: form.name,
-      college: form.college,
-      phone: form.phone,
-      email: form.email,
-      upiId: form.upiId
-    });
+    setSubmitResult(null);
 
+    // Validation
     if (!form.selectedWorkshopId) {
-      setError("Please select a workshop.");
+      setSubmitResult({ ok: false, message: "Please select a workshop." });
       return;
     }
-
     if (!form.name.trim()) {
-      setError("Please enter your name.");
+      setSubmitResult({ ok: false, message: "Please enter your name." });
       return;
     }
-
     if (!form.college.trim()) {
-      setError("Please enter your college name.");
+      setSubmitResult({ ok: false, message: "Please enter your college name." });
       return;
     }
-
     if (!form.phone.trim()) {
-      setError("Please enter your phone number.");
+      setSubmitResult({ ok: false, message: "Please enter your phone number." });
       return;
     }
-
     if (!form.email.trim()) {
-      setError("Please enter your email address.");
+      setSubmitResult({ ok: false, message: "Please enter your email address." });
       return;
     }
-
     if (isPaid && !form.upiId.trim()) {
-      setError("UPI Transaction ID is required for paid workshops.");
+      setSubmitResult({ ok: false, message: "UPI Transaction ID is required for paid workshops." });
       return;
     }
-
     if (isPaid && !paymentScreenshot) {
-      setError("Payment screenshot is required for paid workshops.");
+      setSubmitResult({ ok: false, message: "Payment screenshot is required for paid workshops." });
       return;
     }
 
     setSubmitting(true);
-    console.log("Submitting to:", `${API_BASE_URL}/register`);
 
     const formData = new FormData();
-    formData.append("name", form.name);
-    formData.append("college", form.college);
-    formData.append("phone", form.phone);
-    formData.append("email", form.email);
+    formData.append("name",               form.name.trim());
+    formData.append("college",            form.college.trim());
+    formData.append("phone",              form.phone.trim());
+    formData.append("email",              form.email.trim());
     formData.append("selectedWorkshopId", form.selectedWorkshopId);
-    
-    if (isPaid) {
-      formData.append("utrId", form.upiId);
-      formData.append("upiId", form.upiId);
-      if (paymentScreenshot) {
-        formData.append("paymentScreenshot", paymentScreenshot);
-      }
-    } else {
-      formData.append("utrId", "");
-      formData.append("upiId", "");
+    formData.append("selectedWorkshopTitle", selectedWorkshop?.title || selectedWorkshop?.name || "");
+    formData.append("utrId",  isPaid ? form.upiId.trim() : "");
+    formData.append("upiId",  isPaid ? form.upiId.trim() : "");
+    if (isPaid && paymentScreenshot) {
+      formData.append("paymentScreenshot", paymentScreenshot);
     }
 
     try {
-      const res = await fetch(`${API_BASE_URL}/register`, {
-        method: "POST",
-        body: formData
-      });
-
-      const data = await res.text();
-      if (!res.ok) {
-        console.error("Submission failed:", data);
-        setError(data || "Error submitting form");
-        return;
-      }
-
-      console.log("Submission successful:", data);
-      alert(data);
+      const message = await registerStudent(formData);
+      setSubmitResult({ ok: true, message: message || "Registration successful!" });
+      // Reset form on success
+      setForm({ name: "", college: "", phone: "", email: "", selectedWorkshopId: preselectedId, upiId: "" });
+      setPaymentScreenshot(null);
+      setScreenshotPreview("");
     } catch (err) {
-      console.error("Network error during submission:", err);
-      alert("Error submitting form. Please check your connection.");
+      console.error("Registration error:", err);
+      setSubmitResult({
+        ok: false,
+        message: err.message || "Registration failed. Please check your connection and try again.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
+  // ── Render ──────────────────────────────────────────────────────────────────
   return (
     <div className="register-page">
       <AppBackground />
       <Navbar />
 
       <div className="register-layout">
+        {/* Left panel */}
         <motion.div
           className="register-left"
           initial={{ opacity: 0, x: -24 }}
@@ -208,41 +180,35 @@ function Register() {
             </p>
 
             <div className="register-features">
-              <div className="register-feature-item">
-                <div className="register-feature-icon"><Monitor size={20} /></div>
-                <span>Live Expert Sessions</span>
-              </div>
-              <div className="register-feature-item">
-                <div className="register-feature-icon"><Award size={20} /></div>
-                <span>Verified Certificates</span>
-              </div>
-              <div className="register-feature-item">
-                <div className="register-feature-icon"><Cpu size={20} /></div>
-                <span>Hands-on Learning</span>
-              </div>
-              <div className="register-feature-item">
-                <div className="register-feature-icon"><Users size={20} /></div>
-                <span>Premium Community Access</span>
-              </div>
+              {[
+                { icon: <Monitor size={20} />, label: "Live Expert Sessions" },
+                { icon: <Award size={20} />,   label: "Verified Certificates" },
+                { icon: <Cpu size={20} />,     label: "Hands-on Learning" },
+                { icon: <Users size={20} />,   label: "Premium Community Access" },
+              ].map(({ icon, label }) => (
+                <div className="register-feature-item" key={label}>
+                  <div className="register-feature-icon">{icon}</div>
+                  <span>{label}</span>
+                </div>
+              ))}
             </div>
 
             <div className="register-stats">
-              <div className="register-stat">
-                <span className="register-stat-num">15,000+</span>
-                <span className="register-stat-label">Learners</span>
-              </div>
-              <div className="register-stat">
-                <span className="register-stat-num">300+</span>
-                <span className="register-stat-label">Workshops</span>
-              </div>
-              <div className="register-stat">
-                <span className="register-stat-num">99%</span>
-                <span className="register-stat-label">Satisfaction</span>
-              </div>
+              {[
+                { num: "15,000+", label: "Learners" },
+                { num: "300+",    label: "Workshops" },
+                { num: "99%",     label: "Satisfaction" },
+              ].map(({ num, label }) => (
+                <div className="register-stat" key={label}>
+                  <span className="register-stat-num">{num}</span>
+                  <span className="register-stat-label">{label}</span>
+                </div>
+              ))}
             </div>
           </div>
         </motion.div>
 
+        {/* Right panel — form */}
         <div className="register-right">
           <motion.form
             onSubmit={handleSubmit}
@@ -250,27 +216,51 @@ function Register() {
             initial={{ opacity: 0, y: 24, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
+            noValidate
           >
+            {/* Card header */}
             <div className="register-card-header">
               {selectedWorkshop?.workshopImage && (
                 <div className="workshop-image-container">
-                  <img 
-                    src={selectedWorkshop.workshopImage} 
-                    alt={selectedWorkshop.title || selectedWorkshop.name} 
+                  <img
+                    src={selectedWorkshop.workshopImage}
+                    alt={selectedWorkshop.title || selectedWorkshop.name}
                     className="workshop-image"
                   />
                 </div>
               )}
               <h2 className="register-card-title">Complete Registration</h2>
               <p className="register-card-subtitle">
-                {selectedWorkshop ? (selectedWorkshop.title || selectedWorkshop.name) : id ? `Workshop ID: ${id}` : "Choose your workshop"}
+                {selectedWorkshop
+                  ? (selectedWorkshop.title || selectedWorkshop.name)
+                  : preselectedId
+                    ? `Workshop ID: ${preselectedId}`
+                    : "Choose your workshop"}
               </p>
             </div>
 
-            {error && <div className="register-error">{error}</div>}
+            {/* Feedback banner */}
+            <AnimatePresence mode="wait">
+              {submitResult && (
+                <motion.div
+                  key={submitResult.ok ? "success" : "error"}
+                  className={`register-feedback ${submitResult.ok ? "register-feedback--success" : "register-feedback--error"}`}
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  {submitResult.ok
+                    ? <CheckCircle size={16} />
+                    : <AlertCircle size={16} />}
+                  <span>{submitResult.message}</span>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
+            {/* Workshop selector */}
             <div className="register-field-group">
-              <label htmlFor="selectedWorkshopId">SELECT WORKSHOP</label>
+              <label>SELECT WORKSHOP</label>
               <SearchableDropdown
                 options={workshops}
                 value={form.selectedWorkshopId}
@@ -280,106 +270,90 @@ function Register() {
               />
             </div>
 
+            {/* Amount (paid only) */}
             {isPaid && (
               <div className="register-field-group">
-                <label htmlFor="amountToPay">AMOUNT TO PAY</label>
+                <label>AMOUNT TO PAY</label>
                 <input
-                  id="amountToPay"
                   value={amountLabel}
-                  placeholder="Select a workshop"
                   className="register-input"
                   readOnly
+                  aria-label="Amount to pay"
                 />
               </div>
             )}
 
-            <div className="register-field-group">
-              <label htmlFor="name">Name</label>
-              <input
-                id="name"
-                name="name"
-                placeholder="Enter your full name"
-                value={form.name}
-                onChange={handleChange}
-                className="register-input"
-              />
-            </div>
+            {/* Personal details */}
+            {[
+              { id: "name",    label: "Name",    placeholder: "Enter your full name",    type: "text" },
+              { id: "college", label: "College", placeholder: "Enter your college name", type: "text" },
+              { id: "phone",   label: "Phone",   placeholder: "Enter phone number",      type: "tel" },
+              { id: "email",   label: "Email",   placeholder: "Enter email address",     type: "email" },
+            ].map(({ id, label, placeholder, type }) => (
+              <div className="register-field-group" key={id}>
+                <label htmlFor={`reg-${id}`}>{label}</label>
+                <input
+                  id={`reg-${id}`}
+                  name={id}
+                  type={type}
+                  placeholder={placeholder}
+                  value={form[id]}
+                  onChange={handleChange}
+                  className="register-input"
+                  autoComplete={id === "email" ? "email" : id === "phone" ? "tel" : "off"}
+                />
+              </div>
+            ))}
 
-            <div className="register-field-group">
-              <label htmlFor="college">College</label>
-              <input
-                id="college"
-                name="college"
-                placeholder="Enter your college name"
-                value={form.college}
-                onChange={handleChange}
-                className="register-input"
-              />
-            </div>
-
-            <div className="register-field-group">
-              <label htmlFor="phone">Phone</label>
-              <input
-                id="phone"
-                name="phone"
-                placeholder="Enter phone number"
-                value={form.phone}
-                onChange={handleChange}
-                className="register-input"
-              />
-            </div>
-
-            <div className="register-field-group">
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                name="email"
-                placeholder="Enter email address"
-                value={form.email}
-                onChange={handleChange}
-                className="register-input"
-              />
-            </div>
-
+            {/* Payment fields (paid only) */}
             {isPaid && (
               <>
                 <div className="register-field-group">
-                  <label htmlFor="upiId">UTR / TRANSACTION ID</label>
+                  <label htmlFor="reg-upiId">UTR / TRANSACTION ID</label>
                   <input
-                    id="upiId"
-                    type="text"
+                    id="reg-upiId"
                     name="upiId"
+                    type="text"
                     placeholder="Enter UTR or Transaction ID"
                     value={form.upiId}
                     onChange={handleChange}
                     className="register-input"
-                    required={isPaid}
+                    autoComplete="off"
                   />
                 </div>
 
                 <div className="register-field-group">
-                  <label htmlFor="paymentScreenshot">PAYMENT SCREENSHOT</label>
-                  <label className="register-upload-box" htmlFor="paymentScreenshot">
+                  <label htmlFor="reg-screenshot">PAYMENT SCREENSHOT</label>
+                  <label className="register-upload-box" htmlFor="reg-screenshot">
                     <input
-                      id="paymentScreenshot"
+                      id="reg-screenshot"
                       type="file"
                       accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                       className="register-upload-input"
                       onChange={handleScreenshotChange}
-                      required={isPaid}
                     />
                     {screenshotPreview ? (
-                      <img src={screenshotPreview} alt="Payment screenshot preview" className="register-upload-preview" />
+                      <img
+                        src={screenshotPreview}
+                        alt="Payment screenshot preview"
+                        className="register-upload-preview"
+                      />
                     ) : (
-                      <span className="register-upload-text">Upload JPG, PNG, or WEBP</span>
+                      <span className="register-upload-text">Upload JPG, PNG, or WEBP · max 5 MB</span>
                     )}
                   </label>
                 </div>
               </>
             )}
 
-            <button type="submit" className="register-submit" disabled={submitting}>
-              {submitting ? "Registering..." : "Complete Registration"}
+            {/* Submit */}
+            <button
+              type="submit"
+              className="register-submit"
+              disabled={submitting}
+              aria-busy={submitting}
+            >
+              {submitting ? "Registering…" : "Complete Registration"}
             </button>
           </motion.form>
         </div>

@@ -13,6 +13,7 @@ import QuickActions from "../components/dashboard/QuickActions";
 import WorkshopFilters from "../components/dashboard/WorkshopFilters";
 import WorkshopCard from "../components/dashboard/WorkshopCard";
 import { deleteWorkshop, fetchWorkshops } from "../services/workshopApi";
+import { fetchAnalytics } from "../services/analyticsService";
 import "./Dashboard.css";
 
 const fallbackImages = [
@@ -24,31 +25,46 @@ const fallbackImages = [
 function Dashboard() {
   const [workshops, setWorkshops] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState(false);
+  const [analytics, setAnalytics] = useState({
+    totalWorkshops: 0,
+    totalStudents: 0,
+    liveSessions: 0,
+    completionRate: 0,
+    trendData: [],
+    recentActivity: []
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     let isMounted = true;
 
-    const loadWorkshops = async () => {
+    const loadData = async () => {
       setLoading(true);
 
       try {
-        const data = await fetchWorkshops();
-        if (!isMounted) return;
-        setWorkshops(data);
+        const workshopsData = await fetchWorkshops();
+        if (isMounted) setWorkshops(workshopsData);
       } catch (err) {
         console.error("Error fetching workshops:", err);
-        if (isMounted) {
-          setWorkshops([]);
-        }
-      } finally {
-        if (isMounted) {
-          setLoading(false);
-        }
+        if (isMounted) setWorkshops([]);
       }
+
+      try {
+        const analyticsData = await fetchAnalytics();
+        if (isMounted) {
+          setAnalytics(analyticsData);
+          setAnalyticsError(false);
+        }
+      } catch (err) {
+        console.error("Error fetching analytics:", err);
+        if (isMounted) setAnalyticsError(true);
+      }
+
+      if (isMounted) setLoading(false);
     };
 
-    loadWorkshops();
+    loadData();
 
     return () => {
       isMounted = false;
@@ -84,41 +100,70 @@ function Dashboard() {
         <DashboardHeader />
 
         <section className="stats-grid-new">
-          <StatsCard 
-            label="Total Workshops" 
-            value={workshops.length} 
-            icon={<BookOpen size={24} style={{color: '#00D2FF'}} />} 
-            trendText="↑ +3 this week"
-            delay={0}
-          />
-          <StatsCard 
-            label="Total Students" 
-            value="1,284" 
-            icon={<Users size={24} style={{color: '#7000FF'}} />} 
-            trendText="↑ +42 today"
-            delay={0.1}
-          />
-          <StatsCard 
-            label="Live Sessions" 
-            value="12" 
-            icon={<Activity size={24} style={{color: '#FF00AA'}} />} 
-            trendText="🟢 3 starting soon"
-            delay={0.2}
-          />
-          <StatsCard 
-            label="Completion Rate" 
-            value="94%" 
-            icon={<Award size={24} style={{color: '#00D2FF'}} />} 
-            trendText="↑ +2% this month"
-            isCircular={true}
-            percentage={94}
-            delay={0.3}
-          />
+          {analyticsError ? (
+            <>
+              <StatsCard 
+                label="Total Workshops" 
+                value={workshops.length} 
+                icon={<BookOpen size={24} style={{color: '#00D2FF'}} />} 
+                delay={0}
+              />
+              <StatsCard 
+                label="Total Students" 
+                value="—" 
+                icon={<Users size={24} style={{color: '#7000FF'}} />} 
+                delay={0.1}
+              />
+              <StatsCard 
+                label="Live Sessions" 
+                value="—" 
+                icon={<Activity size={24} style={{color: '#FF00AA'}} />} 
+                delay={0.2}
+              />
+              <StatsCard 
+                label="Completion Rate" 
+                value="—" 
+                icon={<Award size={24} style={{color: '#00D2FF'}} />} 
+                isCircular={true}
+                percentage={0}
+                delay={0.3}
+              />
+            </>
+          ) : (
+            <>
+              <StatsCard 
+                label="Total Workshops" 
+                value={analytics.totalWorkshops} 
+                icon={<BookOpen size={24} style={{color: '#00D2FF'}} />} 
+                delay={0}
+              />
+              <StatsCard 
+                label="Total Students" 
+                value={analytics.totalStudents.toLocaleString()} 
+                icon={<Users size={24} style={{color: '#7000FF'}} />} 
+                delay={0.1}
+              />
+              <StatsCard 
+                label="Live Sessions" 
+                value={analytics.liveSessions} 
+                icon={<Activity size={24} style={{color: '#FF00AA'}} />} 
+                delay={0.2}
+              />
+              <StatsCard 
+                label="Completion Rate" 
+                value={`${analytics.completionRate}%`} 
+                icon={<Award size={24} style={{color: '#00D2FF'}} />} 
+                isCircular={true}
+                percentage={analytics.completionRate}
+                delay={0.3}
+              />
+            </>
+          )}
         </section>
 
         <section className="analytics-section">
-          <AttendanceChart />
-          <RecentActivity />
+          <AttendanceChart data={analyticsError ? [] : analytics.trendData} />
+          <RecentActivity activities={analyticsError ? [] : analytics.recentActivity} />
         </section>
 
         <QuickActions />
@@ -129,7 +174,7 @@ function Dashboard() {
           <div style={{ color: "var(--text-muted)", textAlign: "center", marginTop: "40px" }}>
             Loading workshops...
           </div>
-        ) : workshops.length === 0 ? (
+        ) : !Array.isArray(workshops) || workshops.length === 0 ? (
           <motion.div 
             className="empty-state"
             initial={{ opacity: 0 }}
@@ -153,7 +198,7 @@ function Dashboard() {
             initial="hidden"
             animate="visible"
           >
-            {workshops.map((w, index) => (
+            {(workshops || []).map((w, index) => (
               <WorkshopCard 
                 key={w._id} 
                 workshop={w} 
