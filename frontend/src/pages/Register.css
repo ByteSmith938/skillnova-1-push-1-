@@ -292,6 +292,36 @@
   position: relative;
   overflow: hidden;
   transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  /* MOBILE TOUCH SAFETY */
+  z-index: 20;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.register-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.workshop-image-container {
+  width: 100%;
+  max-width: 420px;
+  margin: 0 auto 24px;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.workshop-image {
+  width: 100%;
+  height: 260px;
+  object-fit: cover;
+  display: block;
+  border-radius: 20px;
 }
 
 .register-submit::before {
@@ -303,9 +333,10 @@
   height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
   transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none; /* Ensure pseudo-element doesn't block clicks */
 }
 
-.register-submit:hover {
+.register-submit:hover:not(:disabled) {
   transform: translateY(-2px) scale(1.02);
   box-shadow: 0 8px 32px rgba(0, 210, 255, 0.35), 0 0 60px rgba(112, 0, 255, 0.2);
 }
@@ -329,6 +360,7 @@
 @media (max-width: 1024px) {
   .register-layout {
     grid-template-columns: 1fr;
+    padding-top: 60px;
   }
 
   .register-left {
@@ -336,21 +368,36 @@
   }
 
   .register-right {
-    min-height: 100vh;
-    padding: 40px 24px;
+    min-height: auto;
+    padding: 40px 20px;
   }
 
   .register-card {
     animation: none;
+    margin-top: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .workshop-image-container {
+    max-width: 100%;
+    margin-bottom: 20px;
+  }
+
+  .workshop-image {
+    height: 180px;
+    object-fit: cover;
   }
 }
 
 @media (max-width: 480px) {
   .register-right {
-    padding: 30px 16px;
+    padding: 20px 16px;
   }
 
   .register-card {
-    padding: 24px 20px;
+    padding: 24px 18px;
+    gap: 12px;
   }
 }
+

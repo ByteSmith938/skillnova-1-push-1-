@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Zap, Monitor, Award, Cpu, Users } from "lucide-react";
 import Navbar from "../components/Navbar";
 import AppBackground from "../components/AppBackground";
+import SearchableDropdown from "../components/SearchableDropdown";
 import { API_BASE_URL } from "../services/apiConfig";
 import { fetchWorkshops } from "../services/workshopApi";
 import "./Home.css";
@@ -14,6 +15,8 @@ function Register() {
   const [workshops, setWorkshops] = useState([]);
   const [paymentScreenshot, setPaymentScreenshot] = useState(null);
   const [screenshotPreview, setScreenshotPreview] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
   const [form, setForm] = useState({
@@ -38,18 +41,26 @@ function Register() {
 
     const loadData = async () => {
       try {
-        const data = await fetchWorkshops();
+        setLoading(true);
+        const res = await fetch(`${API_BASE_URL}/workshops/public`);
+        const data = await res.json();
+        
+        console.log("Workshop API response:", data);
+        
         if (!isMounted) return;
         
-        const workshopList = data;
+        const workshopList = Array.isArray(data) ? data : [];
+        console.log("Mapped workshops:", workshopList);
         setWorkshops(workshopList);
 
-        if (id && workshopList.some((workshop) => workshop._id === id)) {
+        if (id && workshopList.some((workshop) => (workshop._id || workshop.id) === id)) {
           setForm((prev) => ({ ...prev, selectedWorkshopId: id }));
         }
       } catch (err) {
         console.error("Error fetching workshops:", err);
         if (isMounted) setWorkshops([]);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     };
 
@@ -81,9 +92,39 @@ function Register() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    
+    console.log("SUBMIT CLICKED");
+    console.log("Form values:", {
+      selectedWorkshopId: form.selectedWorkshopId,
+      name: form.name,
+      college: form.college,
+      phone: form.phone,
+      email: form.email,
+      upiId: form.upiId
+    });
 
     if (!form.selectedWorkshopId) {
       setError("Please select a workshop.");
+      return;
+    }
+
+    if (!form.name.trim()) {
+      setError("Please enter your name.");
+      return;
+    }
+
+    if (!form.college.trim()) {
+      setError("Please enter your college name.");
+      return;
+    }
+
+    if (!form.phone.trim()) {
+      setError("Please enter your phone number.");
+      return;
+    }
+
+    if (!form.email.trim()) {
+      setError("Please enter your email address.");
       return;
     }
 
@@ -96,6 +137,9 @@ function Register() {
       setError("Payment screenshot is required for paid workshops.");
       return;
     }
+
+    setSubmitting(true);
+    console.log("Submitting to:", `${API_BASE_URL}/register`);
 
     const formData = new FormData();
     formData.append("name", form.name);
@@ -123,13 +167,18 @@ function Register() {
 
       const data = await res.text();
       if (!res.ok) {
+        console.error("Submission failed:", data);
         setError(data || "Error submitting form");
         return;
       }
 
+      console.log("Submission successful:", data);
       alert(data);
     } catch (err) {
-      alert("Error submitting form");
+      console.error("Network error during submission:", err);
+      alert("Error submitting form. Please check your connection.");
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -203,9 +252,18 @@ function Register() {
             transition={{ duration: 0.55, delay: 0.1, ease: [0.22, 1, 0.36, 1] }}
           >
             <div className="register-card-header">
+              {selectedWorkshop?.workshopImage && (
+                <div className="workshop-image-container">
+                  <img 
+                    src={selectedWorkshop.workshopImage} 
+                    alt={selectedWorkshop.title || selectedWorkshop.name} 
+                    className="workshop-image"
+                  />
+                </div>
+              )}
               <h2 className="register-card-title">Complete Registration</h2>
               <p className="register-card-subtitle">
-                {selectedWorkshop ? selectedWorkshop.title : id ? `Workshop ID: ${id}` : "Choose your workshop"}
+                {selectedWorkshop ? (selectedWorkshop.title || selectedWorkshop.name) : id ? `Workshop ID: ${id}` : "Choose your workshop"}
               </p>
             </div>
 
@@ -213,21 +271,13 @@ function Register() {
 
             <div className="register-field-group">
               <label htmlFor="selectedWorkshopId">SELECT WORKSHOP</label>
-              <select
-                id="selectedWorkshopId"
-                name="selectedWorkshopId"
+              <SearchableDropdown
+                options={workshops}
                 value={form.selectedWorkshopId}
                 onChange={handleChange}
-                className="register-input register-select"
-                required
-              >
-                <option value="">Select a workshop</option>
-                {workshops.map((workshop) => (
-                  <option key={workshop._id} value={workshop._id}>
-                    {workshop.title}
-                  </option>
-                ))}
-              </select>
+                placeholder="Select a workshop"
+                loading={loading}
+              />
             </div>
 
             {isPaid && (
@@ -328,8 +378,8 @@ function Register() {
               </>
             )}
 
-            <button type="submit" className="register-submit">
-              Complete Registration
+            <button type="submit" className="register-submit" disabled={submitting}>
+              {submitting ? "Registering..." : "Complete Registration"}
             </button>
           </motion.form>
         </div>

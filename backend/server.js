@@ -83,7 +83,12 @@ const verifyToken = (token) => {
 
 const requireStaff = (allowedRoles = ["admin", "coworker"]) => (req, res, next) => {
   const authHeader = req.get("authorization") || "";
-  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+  let token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : "";
+
+  // Support token in query string for window.open/new tab access
+  if (!token && req.query.token) {
+    token = req.query.token;
+  }
 
   try {
     const user = verifyToken(token);
@@ -100,6 +105,21 @@ const requireStaff = (allowedRoles = ["admin", "coworker"]) => (req, res, next) 
 
 app.use("/uploads/payments", requireStaff(["admin", "coworker"]), express.static(paymentUploadDir));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+app.get("/admin/payment-screenshot/:filename", requireStaff(["admin", "coworker"]), (req, res) => {
+  try {
+    const filename = path.basename(req.params.filename);
+    const filePath = path.join(__dirname, "uploads", "payments", filename);
+
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: "Screenshot not found" });
+    }
+
+    res.sendFile(filePath);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load screenshot" });
+  }
+});
 
 const findStudentsByWorkshop = (workshopId) => Student.find({
   $or: [
@@ -270,6 +290,20 @@ app.get("/students", requireStaff(["admin", "coworker"]), async (req, res) => {
   }
 });
 
+app.get("/workshops/public", async (req, res) => {
+  console.log("🔥 Public workshops list route hit");
+  try {
+    const workshops = await Workshop.find(
+      {},
+      "_id title name date price instructor category workshopImage"
+    ).sort({ _id: -1 });
+    res.json(workshops);
+  } catch (err) {
+    console.error("❌ Error fetching public workshops:", err);
+    res.status(500).send("Error fetching public workshops");
+  }
+});
+
 app.get("/workshops", async (req, res) => {
   console.log("🔥 workshops route hit");   // 👈 ADD THIS LINE
 
@@ -364,7 +398,7 @@ app.get("/students/:workshopId", requireStaff(["admin", "coworker"]), async (req
 });
 
 // ✅ GET single student by id
-app.get("/student/:id", requireStaff(["admin", "coworker"]), async (req, res) => {
+app.get("/student/:id", requireStaff(["admin"]), async (req, res) => {
   try {
     const student = await Student.findById(req.params.id);
 
@@ -452,23 +486,34 @@ app.put("/workshops/:id", async (req, res) => {
   }
 });
 
-// ===============================
-// GET SINGLE STUDENT
-// ===============================
-app.get("/student/:id", requireStaff(["admin", "coworker"]), async (req, res) => {
-  console.log("HIT /student/:id", req.params.id); // 👈 debug
-
+// ✅ PATCH update student payment status
+app.patch("/admin/student/:id/payment-status", requireStaff(["admin", "coworker"]), async (req, res) => {
   try {
-    const student = await Student.findById(req.params.id);
+    const { paymentStatus } = req.body;
+    const allowedStatuses = ["pending", "completed", "rejected"];
 
-    if (!student) {
-      return res.status(404).send("Student not found");
+    console.log("Updating student:", req.params.id);
+    console.log("New status:", paymentStatus);
+
+    if (!allowedStatuses.includes(paymentStatus)) {
+      console.log("Invalid status attempt:", paymentStatus);
+      return res.status(400).json({ message: "Invalid payment status" });
     }
 
-    res.json(student);
+    const updatedStudent = await Student.findByIdAndUpdate(
+      req.params.id,
+      { paymentStatus },
+      { new: true }
+    );
+
+    if (!updatedStudent) {
+      return res.status(404).json({ message: "Student not found" });
+    }
+
+    res.json(updatedStudent);
   } catch (err) {
-    console.log(err);
-    res.status(500).send("Error fetching student");
+    console.error("UPDATE PAYMENT STATUS ERROR:", err);
+    res.status(500).json({ message: "Error updating payment status" });
   }
 });
 

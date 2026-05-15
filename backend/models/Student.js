@@ -13,7 +13,7 @@ const studentSchema = new mongoose.Schema({
   paymentScreenshot: String,
   paymentStatus: {
     type: String,
-    enum: ["free", "pending", "verified"],
+    enum: ["free", "pending", "verified", "completed", "rejected"],
     default: "free"
   },
   utrId: String,

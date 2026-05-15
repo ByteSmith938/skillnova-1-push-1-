@@ -94,3 +94,16 @@ export const fetchAdminWorkshop = async (id) => {
 
   return parseJsonResponse(response);
 };
+
+export const updatePaymentStatus = async (studentId, status) => {
+  const response = await fetch(`${API_BASE_URL}/admin/student/${studentId}/payment-status`, {
+    method: "PATCH",
+    headers: {
+      ...getAuthHeaders(),
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({ paymentStatus: status })
+  });
+
+  return parseJsonResponse(response);
+};
